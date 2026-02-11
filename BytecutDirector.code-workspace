@@ -1,0 +1,11 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../wan.git"
+		}
+	],
+	"settings": {}
+}
