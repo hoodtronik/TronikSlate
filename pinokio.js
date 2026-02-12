@@ -61,10 +61,6 @@ module.exports = {
           href: "start.js",
         }, {
           icon: "fa-solid fa-plug",
-          text: "Update",
-          href: "update.js",
-        }, {
-          icon: "fa-solid fa-plug",
           text: "Install",
           href: "install.js",
 
