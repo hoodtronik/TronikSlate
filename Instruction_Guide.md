@@ -1,16 +1,16 @@
 <p align="center">
-  <img src="public/logo.png" alt="ByteCut Director" width="120">
+  <img src="public/logo.png" alt="Tronik Slate" width="120">
 </p>
 
-<h1 align="center">ByteCut Director</h1>
+<h1 align="center">Tronik Slate</h1>
 
-<p align="center"><strong>AI Video Production Tool — by ByteSound</strong></p>
+<p align="center"><strong>AI Video Production Tool — by hoodTRONIK</strong></p>
 
-ByteCut Director is a production workspace for managing AI-generated video workflows. It organizes your shots, reference images, prompts, audio, and generation parameters into a streamlined pipeline — then exports everything as a ready-to-upload ZIP for **Wan2GP** so that generation pipeline is a breeze...
+Tronik Slate is a production workspace for managing AI-generated video workflows. It organizes your shots, reference images, prompts, audio, and generation parameters into a streamlined pipeline — then exports everything as a ready-to-upload ZIP for **Wan2GP** so that generation pipeline is a breeze...
 
-Instead of manually building queue files, juggling filenames, and tracking which video version goes with which shot — ByteCut Director handles all of it in one place.
+Instead of manually building queue files, juggling filenames, and tracking which video version goes with which shot — Tronik Slate handles all of it in one place.
 
-> [**Wan2GP**](https://github.com/deepbeepmeep/Wan2GP) is a Gradio-based UI for running AI video generation models. ByteCut Director is built for Wan2GP **v10.60+** with the **LTX-2 DEV 19B Distilled** model.
+> [**Wan2GP**](https://github.com/deepbeepmeep/Wan2GP) is a Gradio-based UI for running AI video generation models. Tronik Slate is built for Wan2GP **v10.60+** with the **LTX-2 DEV 19B Distilled** model.
 
 ---
 
@@ -125,7 +125,7 @@ npm install --os=win32 --cpu=x64 sharp
 
 ### 1. Create or Load a Project
 
-When you open ByteCut Director, the welcome screen lets you create a new project or load an existing one.
+When you open Tronik Slate, the welcome screen lets you create a new project or load an existing one.
 
 ![Welcome screen](docs/screenshots/01-welcome.png)
 
@@ -218,7 +218,7 @@ When your shots are ready, click **Export ZIP** in the toolbar to open the expor
 
 ### 10. Load the Queue in Wan2GP
 
-> **Note:** ByteCut Director is designed for [Wan2GP](https://github.com/deepbeepmeep/Wan2GP) **v10.60+** with the **LTX-2 DEV 19B Distilled** model.
+> **Note:** Tronik Slate is designed for [Wan2GP](https://github.com/deepbeepmeep/Wan2GP) **v10.60+** with the **LTX-2 DEV 19B Distilled** model.
 
 Once you have the exported `queue.zip`, open Wan2GP in your browser. On the right side, expand the **Queue Management** section at the bottom, then click **Load Queue** and select your ZIP file.
 
@@ -228,7 +228,7 @@ Wan2GP will load all your shots and automatically start processing the generatio
 
 ![Wan2GP queue running](docs/screenshots/11-wan2gp-queue-started.png)
 
-Once all videos are generated, they'll be in Wan2GP's output folder — ready to import back into ByteCut Director.
+Once all videos are generated, they'll be in Wan2GP's output folder — ready to import back into Tronik Slate.
 
 ### 11. Import Videos Back
 
@@ -242,7 +242,7 @@ After your videos are generated, click **Import Videos** to bring them back in.
 
 ![Video import — select folder](docs/screenshots/09-import-videos-2.png)
 
-**Step 3** — ByteCut Director auto-matches each video file to the correct shot by filename. Green = matched, review the list, then click **Import**:
+**Step 3** — Tronik Slate auto-matches each video file to the correct shot by filename. Green = matched, review the list, then click **Import**:
 
 ![Video import — match preview](docs/screenshots/09-import-videos-3.png)
 
@@ -290,14 +290,14 @@ ui/
 │   └── audio/               # Uploaded audio files
 │
 └── public/
-    └── logo.png             # ByteSound logo
+    └── logo.png             # hoodTRONIK logo
 ```
 
 ---
 
 ## How Video Matching Works
 
-When you import videos from a folder, ByteCut Director uses 3-phase matching to automatically assign them to the right shots:
+When you import videos from a folder, Tronik Slate uses 3-phase matching to automatically assign them to the right shots:
 
 1. **Exact match** — filename stem matches the expected `Section_Shot` or `Section_Shot_Take` pattern
 2. **Relaxed match** — strips `_(2)`, `_(3)` dedup suffixes that LTX/Wan2GP add, and maps ordinals to expected numbering

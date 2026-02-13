@@ -1,6 +1,6 @@
-# ByteCut Director — User Guide
+# Tronik Slate — User Guide
 
-ByteCut Director is an AI video pre-production tool that lets you plan, organize, and export video generation jobs for **Wan2GP**. Think of it as a storyboard and shot-list manager that outputs a ready-to-render queue.
+Tronik Slate is an AI video pre-production tool that lets you plan, organize, and export video generation jobs for **Wan2GP**. Think of it as a storyboard and shot-list manager that outputs a ready-to-render queue.
 
 ---
 
@@ -8,7 +8,7 @@ ByteCut Director is an AI video pre-production tool that lets you plan, organize
 
 ### Creating a Project
 
-When you launch ByteCut Director you'll see the **Welcome Screen**:
+When you launch Tronik Slate you'll see the **Welcome Screen**:
 
 - **Create New Project** — Click, type a name, and hit Enter. A blank project opens with one default section.
 - **Load Existing Project** — Click to reveal saved projects. Click any project to open it, or delete ones you no longer need.
@@ -249,7 +249,7 @@ Click **Import Videos** in the toolbar after Wan2GP has finished generating your
 - Click **Select This Folder** when you've found the right one
 
 ### Preview Phase
-- ByteCut Director **automatically matches** video filenames to your shots
+- Tronik Slate **automatically matches** video filenames to your shots
 - Green dots = matched, gray dots = no match found
 - Yellow section = unmatched video files that couldn't be assigned to any shot
 - Click **Import** to bring the matched videos into your project
@@ -272,5 +272,5 @@ Click **Import Videos** in the toolbar after Wan2GP has finished generating your
 7. **Approve** shots you're happy with
 8. **Export ZIP** — filter to approved/ready shots, export the queue
 9. **Load the zip into Wan2GP** and generate
-10. **Import Videos** back into ByteCut Director to review results
+10. **Import Videos** back into Tronik Slate to review results
 11. Iterate — adjust prompts, re-export, re-generate
