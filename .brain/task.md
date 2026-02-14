@@ -1,17 +1,24 @@
-# Tasks
+# Smooth Brain Mode
 
-- [x] Rebrand ByteSound → hoodTRONIK, ByteCut Director → Tronik Slate
-- [x] Fix server crash (rendered.ts orphaned import)
-- [x] Add Reload App button
-- [x] Native PDF export (jsPDF + html2canvas)
-- [x] Copy brain files to `.brain/` for portability
-- [x] Shot Dependency Chains
-  - [x] Add `dependsOn` + `chainMode` to Shot type
-  - [x] Server: `POST /api/frames/extract-last` (ffmpeg last frame)
-  - [x] Server: Mount frames route in index.ts
-  - [x] Store: `setShotDependency()` + `pullChainFrame()` actions
-  - [x] UI: Chain picker dropdown in ShotEditorHeader
-  - [x] UI: Chain badge in ShotCard
-  - [x] UI: "Pull Last Frame" button in RefImagesGrid
-  - [x] Export: Topological sort in ExportPanel
-  - [x] Verify TypeScript compiles clean
+## Template Generation (350/350 ✅)
+- [x] 7 genres × 50 templates → JSON files + `index.ts` barrel export
+
+## Spec ✅
+- [x] 3-phase pipeline (setup → storyboard → export)
+- [x] Model pickers, shot duration, retro arcade transitions, auto-accelerator
+
+## Phase 1 Implementation ✅
+- [x] `uiStore.ts` — `smoothBrainMode`, `smoothBrainPhase` + actions
+- [x] `GenreSliders.tsx` — 7-slider component with % display
+- [x] `StageTransition.tsx` — retro arcade splash (scanlines, glitch, SFX hook)
+- [x] `SmoothBrainWizard.tsx` — full wizard (concept, model pickers, shots, genres, vibe, roll-the-dice, story preview)
+- [x] `App.tsx` — conditional rendering (Smooth Brain replaces main content)
+- [x] `Toolbar.tsx` — 🧠 toggle with purple glow
+- [x] Build verification — zero TS errors
+
+## Later
+- [ ] Phase 2 UI: Storyboard, ShotCard, CharacterSetup
+- [ ] Phase 2 backend: headless image gen + video gen pipelines
+- [ ] Phase 3: video concat + final export
+- [ ] Auto-pick fastest accelerator profile per model
+- [ ] Smooth Brain ↔ Normal Mode project transfer

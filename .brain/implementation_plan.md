@@ -1,113 +1,74 @@
-# Shot Dependency Chains (Video Chains)
+# Smooth Brain Mode — Phase 1 Implementation
 
-When shot A's video is ready, its **last frame** automatically becomes shot B's **start reference image** — creating seamless visual flow across sequential scenes.
+Build the Phase 1 wizard UI: concept input → model pickers → genre sliders → shot config → roll the dice → story preview.
 
-## Scope & Non-Scope
-
-**In scope:** Video-to-video chaining (output of shot A → start ref of shot B)
-**Backburner:** Image-gen-to-video chaining (deferred per user — requires human review loop)
+> [!IMPORTANT]
+> **No project transfer** between Smooth Brain ↔ Normal Mode (noted for later). Smooth Brain mode replaces the entire main content area. A "Normal Mode" button switches back.
 
 ## Proposed Changes
 
-### Types & Data Model
+### Store Layer
 
-#### [MODIFY] [project.ts](file:///f:/pinokio/api/TronikSlate/app/src/types/project.ts)
-
-Add to `Shot` interface:
-```diff
-+ dependsOn?: string;        // Shot ID that feeds into this shot's start image
-+ chainMode?: 'last_frame';  // How to extract (only 'last_frame' for now)
-```
+#### [MODIFY] [uiStore.ts](file:///d:/pinokio/api/TronikSlate/app/src/stores/uiStore.ts)
+- Add `smoothBrainMode: boolean` state (default `false`)
+- Add `setSmoothBrainMode(on: boolean)` and `toggleSmoothBrainMode()` actions
+- Add `smoothBrainPhase: 'setup' | 'storyboard' | 'export'` for Phase 1/2/3 tracking
 
 ---
 
-### Server — Frame Extraction Endpoint
+### Wizard Component
 
-#### [NEW] [frames.ts](file:///f:/pinokio/api/TronikSlate/app/server/routes/frames.ts)
+#### [NEW] [SmoothBrainWizard.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/SmoothBrain/SmoothBrainWizard.tsx)
+Top-level Phase 1 component. Contains:
+- Concept text input
+- Image model dropdown + Video model dropdown (from `modelStore`)
+- Shot count radio (3/6/10)
+- Shot duration slider (5–10s)
+- `<GenreSliders>` subcomponent
+- Vibe preset cards
+- 🎲 Roll the Dice button → calls `getWeightedTemplates()` + `fillTemplate()` from `data/story-templates/index.ts`
+- Story preview (editable beats list)
+- 🔄 Re-roll / ✏️ Edit / 🚀 Go! buttons
+- **Normal Mode →** button in header (calls `setSmoothBrainMode(false)`)
 
-New Express route: `POST /api/frames/extract-last`
-- Input: `{ videoPath: string, projectId: string }`
-- Uses **ffmpeg** (already available in the Pinokio conda env) to extract the last frame
-- Saves as PNG into the project's `images/` folder
-- Returns: `{ filename, path, thumbnailPath }` (same shape as `RefImage`)
-
-> [!NOTE]
-> We'll use ffmpeg via `child_process.execFile` — no new npm dependency needed since ffmpeg ships with the Pinokio/conda environment.
-
-#### [MODIFY] [index.ts](file:///f:/pinokio/api/TronikSlate/app/server/index.ts)
-
-Mount the new frames route: `app.use('/api/frames', framesRoutes)`
-
----
-
-### Store — Chain Logic
-
-#### [MODIFY] [projectStore.ts](file:///f:/pinokio/api/TronikSlate/app/src/stores/projectStore.ts)
-
-Add actions:
-- `setShotDependency(shotId, parentShotId | null)` — sets/clears `dependsOn`
-- `propagateChain(parentShotId)` — when parent shot gets a new video:
-  1. Find all shots where `dependsOn === parentShotId`
-  2. Call `/api/frames/extract-last` on parent's selected video
-  3. Add extracted frame to child shot's `refImages` and set as `selectedRefImageId`
-
-> [!IMPORTANT]
-> Chain propagation is **manual trigger + visual indicator**, not automatic. User sees a "🔗 Chain ready" badge and clicks to pull the frame. This prevents surprises.
+#### [NEW] [GenreSliders.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/SmoothBrain/GenreSliders.tsx)
+- 7 range sliders (Horror→Drama), each 0–100
+- Auto-normalize to 100% total
+- Emoji labels from `genreLabels`
+- Controlled component: `value: Record<Genre, number>`, `onChange` callback
 
 ---
 
-### UI — ShotEditor Chain Picker
+### App Integration
 
-#### [MODIFY] [ShotHeader.tsx](file:///f:/pinokio/api/TronikSlate/app/src/components/ShotEditor/ShotHeader.tsx)
+#### [MODIFY] [App.tsx](file:///d:/pinokio/api/TronikSlate/app/src/App.tsx)
+- Import `SmoothBrainWizard`
+- Read `smoothBrainMode` from `uiStore`
+- When `smoothBrainMode === true`: render `<SmoothBrainWizard />` instead of the sub-bar + Storyboard/Timeline + ShotEditor
+- Toolbar still renders in both modes (for the toggle button)
 
-Add a **"Chain From"** dropdown below the shot name:
-- Lists all other shots in the project (by name, grouped by section)
-- Selected value = `shot.dependsOn`
-- "None" option to clear
-- Shows 🔗 icon when a chain is active
-
----
-
-### UI — ShotCard Chain Indicator
-
-#### [MODIFY] [ShotCard.tsx](file:///f:/pinokio/api/TronikSlate/app/src/components/Storyboard/ShotCard.tsx)
-
-- Show a small 🔗 badge when `shot.dependsOn` is set
-- Tooltip: "Chained from: {parentShotName}"
-- When parent has a completed video + chain hasn't been pulled yet, show **pulsing** 🔗 badge (chain ready)
+#### [MODIFY] [Toolbar.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/Layout/Toolbar.tsx)
+- Add 🧠 toggle button using `smoothbrain.jpg` image
+- Calls `toggleSmoothBrainMode()`
+- Visual indicator when active (glow/highlight)
+- Shows "Normal Mode →" label when in Smooth Brain
 
 ---
 
-### UI — Chain Pull Button
+## Build Order
 
-#### [MODIFY] [RefImagesGrid.tsx](file:///f:/pinokio/api/TronikSlate/app/src/components/ShotEditor/RefImagesGrid.tsx)
-
-When `shot.dependsOn` is set and the parent shot has video:
-- Show a **"⬇ Pull Last Frame"** button above the ref images grid
-- Clicking it calls the store's `propagateChain()` which:
-  1. Extracts last frame from parent's selected video
-  2. Adds it to this shot's refImages
-  3. Selects it as the start image
-- Button shows spinner during extraction
-
----
-
-### Export — Chain Ordering
-
-#### [MODIFY] [ExportPanel.tsx](file:///f:/pinokio/api/TronikSlate/app/src/components/Export/ExportPanel.tsx)
-
-When building the export queue:
-- **Topological sort**: if shot B depends on shot A, A must appear before B in the export list
-- Show warning badge if a chained shot is missing its parent's video
-
----
+1. `uiStore.ts` — add state + actions
+2. `GenreSliders.tsx` — standalone slider component
+3. `SmoothBrainWizard.tsx` — main wizard with all Phase 1 controls
+4. `App.tsx` — conditional rendering
+5. `Toolbar.tsx` — toggle button
 
 ## Verification Plan
 
-### Manual Testing
-1. Create 3 shots: A → B → C chain
-2. Set B `dependsOn` A, C `dependsOn` B
-3. Import a video for shot A → verify "⬇ Pull Last Frame" appears on shot B
-4. Pull the frame → verify it appears as shot B's start ref image
-5. Export queue → verify topological ordering (A before B before C)
-6. PDF export → verify chain badges appear
+### Manual Verification
+1. `npm run dev` from `d:\pinokio\api\TronikSlate\app`
+2. Click 🧠 button → entire UI swaps to Smooth Brain wizard
+3. Click "Normal Mode →" → back to Storyboard/Timeline
+4. Type concept, adjust sliders, click 🎲 → story beats appear
+5. Re-roll produces different beats, Edit lets you modify inline
+6. Model dropdowns show installed I2V + image models (or "none found" message)

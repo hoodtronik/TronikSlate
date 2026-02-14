@@ -1,115 +1,47 @@
-# Tronik Slate — Development State (Feb 13, 2026)
+# 🧠 Smooth Brain Mode — Walkthrough
 
-## What This App Is
-AI-powered video storyboard & timeline editor. Built as a Pinokio launcher app with:
-- **Frontend:** React + TypeScript + Vite + Tailwind (port 5173)
-- **Backend:** Express + tsx (port 3001)
-- **State:** Zustand stores (`projectStore`, `uiStore`, `modelStore`)
+## What Was Built
 
-## Project Structure
-```
-TronikSlate/
-├── app/                    # Main application
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Layout/     # Toolbar, RenderDashboard, WelcomeScreen, ErrorBoundary
-│   │   │   ├── Storyboard/ # Card-based shot view (ShotCard.tsx)
-│   │   │   ├── Timeline/   # Timeline track view (Timeline.tsx)
-│   │   │   ├── ShotEditor/ # Right panel shot editing
-│   │   │   ├── Export/     # ExportPanel, render queue
-│   │   │   ├── ImageManager/
-│   │   │   ├── AudioCropper/
-│   │   │   └── VideoImport/
-│   │   ├── stores/         # Zustand: projectStore, uiStore, modelStore
-│   │   ├── utils/          # api.ts, storyboardPdf.ts, templateImport.ts, time.ts
-│   │   ├── types/          # project.ts (Shot, Section, Project types)
-│   │   └── App.tsx         # Main layout: Toolbar → Sub-bar → Content
-│   ├── server/
-│   │   ├── index.ts        # Express entry, mounts routes
-│   │   └── routes/         # images.ts, audio.ts, rawvideos.ts, project.ts
-│   └── public/
-│       └── TronikSlateLogo.png
-├── install.js / start.js / reset.js / update.js  # Pinokio launchers
-├── pinokio.js / pinokio.json                      # Pinokio UI & metadata
-└── .brain/                 # Dev notes (this folder)
-```
+Smooth Brain Mode Phase 1: a simplified wizard UI that replaces the entire TronikSlate interface with a step-by-step video creation flow. Type a concept, pick models, roll the dice, get a story.
 
-## Key Architecture Decisions
+## Files Created
 
-### Layout (App.tsx)
-```
-┌──────────────────────────────────────────┐
-│ Toolbar: File | Undo/Redo | ProjectName  │  ← h-12, fixed
-├──────────────────────────────────────────┤
-│ Sub-bar: [Storyboard][Timeline]  ...stats│  ← h-8, new
-├──────────────────────────────────────────┤
-│ Main content (Storyboard or Timeline)    │
-│ + ShotEditor panel (right)               │
-│ + ImageManager / AudioCropper (modals)   │
-└──────────────────────────────────────────┘
-```
-
-### Image Handling
-- Server renames ALL uploads to UUID (`${uuid()}.png`) via sharp
-- Thumbnails generated server-side at `data/projects/{id}/thumbs/`
-- Frontend uses `api.getThumbUrl(filename, projectId)` → `/api/images/thumb/{filename}?projectId=...`
-- **Critical:** Always use `uploaded.filename` from server response, never the local name
-
-### Video Handling
-- Videos served via `/api/videos/external?path=<absolute_path>`
-- `shot.videoFiles[].path` stores absolute filesystem paths
-- Timeline & Storyboard show video frames via `<video preload="metadata">`
-
-### Template System (.tronikslate files)
-- JSON format: `{ version, projectName, modelId, profileName, profileParams, resolution, sections[{shots[]}] }`
-- Shots can embed base64 ref images
-- Import: `templateImport.ts` → `parseTemplate()` → `buildProjectFromTemplate()`
-- Export: Template HTML page served at `/api/project/{id}/template`
-
-## What Was Done Today (Feb 13)
-
-1. **Toolbar overlap fix** — RenderDashboard was absolutely positioned and overlapped tabs
-2. **Timeline video fallback** — Shows video frames when no ref image exists
-3. **Template image fix** — Was using local filename instead of server UUID
-4. **PDF video extraction fix** — Removed crossOrigin taint, fixed URL, fixed seek timing
-5. **Timeline zoom defaults** — H:45, V:250 (near max)
-6. **Package rename** — bytecut-director → tronik-slate
-7. **Logo** — pinokio.json icon → app/public/TronikSlateLogo.png
-
-## Open Items (Priority Order)
-
-### 🔴 HIGH — Timeline Player
-The Timeline has no playback. Needs:
-- Playhead cursor (vertical line) synced to time
-- Transport controls (play/pause/stop)
-- Scrubbing (click/drag on ruler)
-- Video playback synchronized across visible clips
-- **This is a large feature — good candidate for Codex 5.3**
-
-### 🟡 MEDIUM — Verify Fixes
-- Template import images — re-test after UUID filename fix
-- PDF video thumbnails — re-test after crossOrigin/URL fix
-
-### 🟢 LOW — Polish
-- Add description to pinokio.json
-- Timeline player keyboard shortcuts (Space=play/pause, J/K/L)
-
-## Dev Commands
-```bash
-cd f:\pinokio\api\TronikSlate\app
-npm run dev          # Starts Vite + Express concurrently
-npx tsc --noEmit     # Type-check without build
-```
-
-## Important Files for Reference
 | File | Purpose |
-|------|---------|
-| `App.tsx` | Main layout, sub-bar with view toggle + dashboard |
-| `Toolbar.tsx` | Top bar: File menu, undo/redo, project name, settings |
-| `Timeline.tsx` | Timeline view with zoom sliders, clips, trim handles |
-| `ShotCard.tsx` | Storyboard card with video preview, drag-drop |
-| `templateImport.ts` | .tronikslate file parsing and project building |
-| `storyboardPdf.ts` | PDF export with video frame extraction |
-| `server/routes/images.ts` | Image upload (UUID rename), thumbnails, CRUD |
-| `stores/projectStore.ts` | Project state, save/load, autosave |
-| `stores/uiStore.ts` | UI state: viewMode, selectedShot, panels |
+|---|---|
+| [SmoothBrainWizard.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/SmoothBrain/SmoothBrainWizard.tsx) | Main Phase 1 wizard — concept input, dual model pickers, shot config, genre sliders, vibe cards, 🎲 Roll the Dice, story preview with re-roll/edit/go |
+| [StageTransition.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/SmoothBrain/StageTransition.tsx) | Full-screen retro arcade "STAGE 1" splash with scanlines, glitch animation, SFX hook — flashes before each phase UI |
+| [GenreSliders.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/SmoothBrain/GenreSliders.tsx) | 7 genre range sliders (Horror→Drama) with live % normalization |
+
+## Files Modified
+
+| File | Changes |
+|---|---|
+| [uiStore.ts](file:///d:/pinokio/api/TronikSlate/app/src/stores/uiStore.ts) | Added `smoothBrainMode`, `smoothBrainPhase` state + toggle/set actions |
+| [App.tsx](file:///d:/pinokio/api/TronikSlate/app/src/App.tsx) | Conditional rendering: Smooth Brain wizard replaces main content area when active |
+| [Toolbar.tsx](file:///d:/pinokio/api/TronikSlate/app/src/components/Layout/Toolbar.tsx) | 🧠 toggle button with purple glow, shows "🧠 Exit" when active |
+| [models.ts](file:///d:/pinokio/api/TronikSlate/app/server/routes/models.ts) | `GET /api/models/image` (scan for Flux/Qwen image models), `POST /api/models/download` (auto-download from HuggingFace) |
+| [index.ts](file:///d:/pinokio/api/TronikSlate/app/src/data/story-templates/index.ts) | Fixed `replaceAll` TS compat → `split/join` |
+| [DEV_NOTES.md](file:///d:/pinokio/api/TronikSlate/DEV_NOTES.md) | Added Trash Bin feature idea, Smooth Brain ↔ Normal Mode transfer note |
+
+## Story Templates (pre-existing from earlier session)
+- 350 templates across 7 genres in `app/src/data/story-templates/*.json`
+- `index.ts` barrel with `getWeightedTemplates()` + `fillTemplate()`
+
+## Key Design Decisions
+
+1. **Full UI swap**: Smooth Brain replaces the entire content area (no sub-bar, no storyboard, no shot editor). Only the Toolbar stays.
+2. **Two model pickers**: Video model (I2V, from existing `/api/models`) + Image model (Flux/Qwen, from new `/api/models/image`)
+3. **Auto-download fallback**: If no image models installed, shows "⬇️ Download Flux2 Klein 4B" button that streams the quantized safetensor from HuggingFace
+4. **Stage transitions**: Retro arcade splash ("STAGE 1 — Story Setup") plays before each phase UI, with hooks for GIF + SFX assets in `app/public/smoothbrain/`
+5. **No project transfer**: Smooth Brain projects don't transfer to Normal Mode (noted for later)
+
+## Noted for Later
+- Auto-pick fastest accelerator profile (LightX2/FusioniX) per model
+- Retro arcade GIFs + 90s voice SFX assets (user will source)
+- Phase 2: Image storyboard with 👍/👎, video storyboard with 👍/👎
+- Phase 3: Final video concat + export
+- Smooth Brain ↔ Normal Mode project transfer
+
+## Verification
+- TypeScript build: **zero errors** (`npx tsc --noEmit`)
+- Dev server starts clean on `http://localhost:5173/`

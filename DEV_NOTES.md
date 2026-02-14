@@ -37,6 +37,44 @@
 - [ ] Frame caching/pre-render for offline preview (user suggested)
 - [ ] Synchronized video thumbnails in timeline clips during playback
 
+### Feature Ideas
+
+#### 🧠 Smooth Brain Mode (spec: `smooth_brain_spec.md`)
+- Script-to-video wizard: Paste Story → Pick Vibe → Hit Go
+- Hides all expert params behind presets, auto-splits text into shots
+- One "Make My Video" button runs full pipeline (export → render → assemble)
+
+#### 📊 Live Render Progress Tracking
+- **Storyboard integration**: Loading bar overlaid on each ShotCard that fills from empty to full as that shot renders. Shots go through states: queued → rendering (animated bar) → done (green check).
+- **In-project view**: While the exported project is open, shots show real-time progress from the headless render SSE stream. Each shot's bar fills based on the step/frame progress from Wan2GP stdout.
+- **Floating popup window**: If user closes the project or switches to another project, a small floating/draggable UI window persists showing:
+  - Overall progress (e.g., "Shot 3 of 8 — 47%")
+  - Per-shot mini progress bars
+  - Elapsed time / ETA
+  - **Cancel/Shutdown button** — kills the headless render process cleanly
+- **Emergency kill script**: A `kill_render.bat` file in the project root that force-kills the Wan2GP python process. Safety net for users who don't know CLI.
+- **Shutdown from app**: Both the in-project render section AND the floating popup must have a clearly visible red "⬜ Stop Render" button that calls `/api/render/cancel`.
+
+#### 📁 Video Import Portability Fix
+- **Problem**: Auto-imported videos (from Wan2GP output watcher) are referenced by external path. If the project folder is moved to a new PC, those videos are missing because they still live in Wan2GP's output folder on the old machine.
+- **Fix**: When any video file is auto-imported (or manually imported), it should be **copied into the project folder** (e.g., `projects/<project>/videos/`) and the project's reference should point to the local copy, not the external source.
+- **Benefit**: Project folders become fully self-contained and portable — can be moved between PCs, backed up, or shared.
+
+#### 🧠 Smooth Brain Mode
+- Spec: `smooth_brain_spec.md`
+- Button image asset: `app/public/smoothbrain.jpg`
+
+#### 🗑️ Trash Bin / Soft Delete (Expert Mode)
+- **Concept**: Bring the 👍/👎 pattern from Smooth Brain into Expert Mode. When a user 👎's (or deletes) a rendered image or video, it moves to a "Trash" tab inside the media grids instead of being permanently removed.
+- **UI**: New tab alongside the existing Images/Videos grid tabs — "🗑️ Trash" — showing soft-deleted assets with timestamp of deletion.
+- **Recovery**: User can drag an item back into the project, or click a "Restore" button to un-trash it and put it back on its original shot.
+- **Permanent delete**: "Empty Trash" button clears disk space. Until then, files remain in a `projects/<project>/trash/` subfolder.
+- **Benefit**: Safety net for accidental deletes, encourages experimentation since nothing is permanently lost until explicitly emptied.
+
+#### 🔄 Smooth Brain ↔ Normal Mode Project Transfer
+- **Status**: Not implemented yet — planned for later
+- **Concept**: Allow users to transfer a Smooth Brain project into Normal Mode (with full sections, shots, params). Currently, each mode is self-contained with no crossover.
+
 ### Key Files
 - `app/src/components/Timeline/Timeline.tsx` — Timeline + Player + Preview Monitor (~927 lines)
 - `app/src/components/Layout/Toolbar.tsx` — Top toolbar with nav buttons

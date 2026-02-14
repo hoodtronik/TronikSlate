@@ -9,7 +9,7 @@ module.exports = {
           "npm run dev",
         ],
         on: [{
-          "event": "/(http:\\/\\/\\S+)/",
+          "event": "/Local:\\s+(http:\\/\\/\\S+)/",
           "done": true
         }]
       }
