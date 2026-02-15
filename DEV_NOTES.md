@@ -1,6 +1,45 @@
 # TronikSlate Development Notes
 
-## Last Session: Feb 13, 2025
+## Last Session: Feb 15, 2025
+
+### Prompt Assistant (Ollama Integration)
+
+**UX Design:**
+- Simple on/off toggle switch inside ShotEditor, above the prompt textarea (not a universal toolbar button)
+- When ON: shows ✨ Enhance Prompt button below prompts, opens before/after diff for review
+- Per-shot metadata: `rawPrompt`, `optimizedPrompt`, `useOptimizedPrompt`, `promptOptimizer`, `promptOptimizedAt`
+- ExportPanel respects `useOptimizedPrompt` — sends optimized version to wan2gp when enabled
+
+**Smooth Brain — AI Roll the Dice:**
+- 🎲✨ AI Roll button alongside existing template-based Roll the Dice
+- Ollama generates a random story idea and expands it into however many shots are selected (3/6/10)
+- Takes concept and genre weights as context, responds with structured JSON array of shot prompts
+- Falls back to template-based roll if Ollama is offline or returns bad data
+- Story Preview shows "✨ AI Generated" label when source is AI
+
+**Server (`server/routes/ollama.ts`):**
+- `GET /status` — checks if Ollama is running + model available
+- `POST /pull` — SSE model download progress
+- `POST /enhance` — single prompt enhancement with strict JSON output
+- `POST /pack` — N-shot story generation (accepts `shotCount`, `concept`, `genres`)
+- VRAM safety: `keep_alive: 0` on every request, `cancelOllamaRequests()` called from render.ts before spawn
+- Model: `llama3.2:3b` (~2GB, Q4 quantization)
+
+**Key Files:**
+| File | Role |
+|------|------|
+| `server/routes/ollama.ts` | 4 Ollama proxy endpoints |
+| `src/stores/promptStore.ts` | Zustand store — status, enhance, generateStory, pull |
+| `src/components/PromptAssistant/PromptDiff.tsx` | Before/after prompt review UI |
+| `src/components/PromptAssistant/PromptAssistantSettings.tsx` | Mode toggle + Ollama status |
+| `src/components/ShotEditor/ShotEditor.tsx` | On/off toggle + enhance button |
+| `src/components/SmoothBrain/SmoothBrainWizard.tsx` | 🎲✨ AI Roll button |
+| `src/data/promptTemplates.ts` | Per-module system prompts |
+| `src/types/project.ts` | Shot type extended with prompt metadata |
+
+---
+
+## Previous Session: Feb 13, 2025
 
 ### What Was Implemented
 
