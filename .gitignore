@@ -2,3 +2,4 @@ node_modules
 .DS_Store
 .dev-config
 logs/
+smooth-brain-wan2gp/
