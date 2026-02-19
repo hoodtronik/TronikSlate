@@ -62,6 +62,31 @@ if char_ref:
     extra.update(get_image_ref_overrides(model_id))
 ```
 
+## Example: The `primary_settings` Leakage Trap
+
+Even after removing the guilty param from overrides, it can STILL fail.
+
+`validate_task()` at wgp.py ~L7260 does:
+```python
+inputs = primary_settings.copy()   # ← last main-UI state!
+inputs.update(params)              # ← our task params
+```
+
+`primary_settings` is loaded from `models/_settings.json` at startup, containing **whatever the user last used** in the main wan2gp UI. If they set `video_prompt_type: "I"` in the main UI, it persists and leaks into every Smooth Brain task that doesn't explicitly override it.
+
+**Fix:** In `_build_task`, explicitly zero out ALL ref-mode params with `setdefault`:
+```python
+base.setdefault("video_prompt_type", "")
+base.setdefault("image_prompt_type", "")
+base.setdefault("audio_prompt_type", "")
+base.setdefault("image_start", None)
+base.setdefault("image_refs", None)
+base.setdefault("video_source", None)
+# ... all guide/mask/audio fields too
+```
+
+These safe defaults can still be overridden by `extra_params` when refs actually exist.
+
 ## Quick Diagnosis
 
 ```
