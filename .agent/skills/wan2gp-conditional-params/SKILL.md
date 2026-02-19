@@ -23,74 +23,44 @@ A render task is **immediately skipped** with `[SKIP] Task N failed validation` 
 | `image_prompt_type` contains `"V"` | `video_source` non-null | ~L854 |
 | `self_refiner_setting != 0` | valid `self_refiner_plan` | ~L756 |
 
-## Fix Checklist
+## Two Sources of Leakage
 
-1. **Read the log** — look for `[SKIP] Task N failed validation`
-2. **Identify the guilty parameter** — check which override is set globally
-3. **Split into two layers:**
-   - **Always-safe overrides** — speed settings, lora, guidance, steps
-   - **Conditional overrides** — ref-mode params, applied only when the required companion data exists
-4. **Apply conditional overrides at the call site**, not in global defaults
+### Source 1: Model Override Dicts
+Setting ref-mode params in global `IMAGE_MODEL_OVERRIDES` causes them to apply everywhere, even when no refs exist.
 
-## Example: The image_refs Trap
-
-```python
-# ❌ BAD — fails when no char_ref exists (Step 2 character gen)
-IMAGE_MODEL_OVERRIDES = {
-    "qwen_image_edit_20B": {
-        "num_inference_steps": 4,
-        "video_prompt_type": "I",  # ← requires image_refs!
-    },
-}
-
-# ✅ GOOD — split into unconditional + conditional
-IMAGE_MODEL_OVERRIDES = {
-    "qwen_image_edit_20B": {
-        "num_inference_steps": 4,   # always safe
-    },
-}
-IMAGE_REF_OVERRIDES = {
-    "qwen_image": {
-        "video_prompt_type": "I",   # only when image_refs provided
-        "remove_background_images_ref": 1,
-    },
-}
-
-# Apply ref overrides ONLY when we have a reference:
-if char_ref:
-    extra["image_refs"] = [char_ref]
-    extra.update(get_image_ref_overrides(model_id))
-```
-
-## Example: The `primary_settings` Leakage Trap
-
-Even after removing the guilty param from overrides, it can STILL fail.
-
+### Source 2: primary_settings Leakage (Most Insidious)
 `validate_task()` at wgp.py ~L7260 does:
 ```python
 inputs = primary_settings.copy()   # ← last main-UI state!
 inputs.update(params)              # ← our task params
 ```
+`primary_settings` is loaded from `models/_settings.json` at startup. If the user previously set `video_prompt_type: "I"` in the main UI, it persists and leaks into every plugin task that doesn't explicitly override it.
 
-`primary_settings` is loaded from `models/_settings.json` at startup, containing **whatever the user last used** in the main wan2gp UI. If they set `video_prompt_type: "I"` in the main UI, it persists and leaks into every Smooth Brain task that doesn't explicitly override it.
+**IMPORTANT:** `setdefault()` does NOT fix this — model defaults from `get_default_settings()` may already contain non-empty values. You must use **direct assignment** (`base["key"] = value`).
 
-**Fix:** In `_build_task`, explicitly zero out ALL ref-mode params with `setdefault`:
-```python
-base.setdefault("video_prompt_type", "")
-base.setdefault("image_prompt_type", "")
-base.setdefault("audio_prompt_type", "")
-base.setdefault("image_start", None)
-base.setdefault("image_refs", None)
-base.setdefault("video_source", None)
-# ... all guide/mask/audio fields too
-```
+## Fix Checklist
 
-These safe defaults can still be overridden by `extra_params` when refs actually exist.
+1. **Read the log** — look for `[SKIP] Task N failed validation`
+2. **Check your task params** — add debug print to dump `video_prompt_type`, `image_refs`, etc.
+3. **Force-zero ALL ref-mode params** in `_build_task` with direct assignment:
+   ```python
+   base["video_prompt_type"] = ""
+   base["image_prompt_type"] = ""
+   base["audio_prompt_type"] = ""
+   base["image_start"] = None
+   base["image_refs"] = None
+   base["video_source"] = None
+   # ...all guide/mask/audio fields
+   ```
+4. **Split overrides into two layers:**
+   - **Always-safe** (IMAGE_MODEL_OVERRIDES) — speed/lora settings
+   - **Conditional** (IMAGE_REF_OVERRIDES) — applied only when refs exist
+5. **Apply conditional overrides at the call site** via `extra_params`
 
 ## Quick Diagnosis
 
 ```
-Log says "failed validation" + 0.0s → parameter dependency issue
+Log says "failed validation" + 0.0s → parameter dependency issue (this skill)
 Log says error after loading model → actual generation failure
 Log says nothing / hangs → model loading or OOM issue
 ```
