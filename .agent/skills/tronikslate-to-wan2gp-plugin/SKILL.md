@@ -1,6 +1,6 @@
 ---
 name: tronikslate-to-wan2gp-plugin
-description: Port a TronikSlate feature (React/Express/TypeScript) into a self-contained Wan2GP Python/Gradio plugin
+description: Port a TronikSlate feature (React/Express/TypeScript) into a self-contained Wan2GP Python/Gradio plugin. Also governs how to keep the plugin in sync when TronikSlate evolves.
 ---
 
 # TronikSlate → Wan2GP Plugin
@@ -12,6 +12,54 @@ Systematic workflow for converting any TronikSlate feature into a standalone Wan
 - A TronikSlate feature (React UI + Express route) should be portable to Wan2GP standalone
 - You want the feature to work without TronikSlate being running
 - The feature needs to interact with Wan2GP's own render queue, model selection, or gallery
+- A TronikSlate feature has been updated and the changes need to be synced to its existing plugin
+
+## Sync Architecture (CRITICAL — Read First)
+
+> [!IMPORTANT]
+> **TronikSlate is the source of truth.** The plugin is a portable Python port of it.
+> These are two separate repos with a deliberate 1-to-1 file mapping.
+
+### The Two-Repo Rule
+
+| Repo | Location | Contains |
+|---|---|---|
+| `TronikSlate` | `F:\pinokio\api\TronikSlate` | React UI, Express routes, TypeScript — the full app |
+| `smooth-brain-wan2gp` (and future plugins) | Sibling folder, own git repo | Python/Gradio port — runs standalone inside Wan2GP |
+
+- The plugin **never imports from TronikSlate**
+- TronikSlate **never imports from the plugin**
+- The plugin folder lives on disk near TronikSlate but is listed in TronikSlate's `.gitignore`
+- Each plugin is pushed to its own GitHub repo (e.g., `hoodtronik/smooth-brain-wan2gp`)
+
+### File Sync Map (Smooth Brain)
+
+When TronikSlate's Smooth Brain feature changes, sync to the plugin using this map:
+
+| TronikSlate file (TypeScript) | Plugin file (Python) | What to sync |
+|---|---|---|
+| `server/routes/ollama.ts` | `ollama.py` | Ollama pack/refine logic, model preference list, fallback behavior |
+| `server/data/modelPromptGuides.ts` | `prompt_guides.py` | Model guides, `audioGuidance`, `formatGuideForSystemPrompt` |
+| `src/data/story-templates.ts` | `story_templates.py` | Genre templates and beat patterns |
+| `src/components/SmoothBrain/VideoExport.tsx` | `state.py` → `build_video_params()` | Render param building, LTX-2 frame snapping |
+| `src/components/SmoothBrain/SmoothBrainWizard.tsx` | `plugin.py` | UI flow — add/remove steps, reorder wizard phases |
+| `src/stores/useSmoothBrainAutosave.ts` | `state.py` | Session persistence logic |
+
+### How to Sync a Change
+
+1. Identify which TronikSlate file changed and what changed in it
+2. Find the corresponding Python file in the plugin using the map above
+3. Port only the changed logic — do not rewrite the whole file
+4. Verify plugin remains self-contained (no new TronikSlate imports)
+5. Commit plugin repo: `git -C <plugin-folder> commit -am "sync: <description>"`
+6. Push plugin repo to GitHub
+
+### What Does NOT Sync
+
+- **`plugin.py` (Gradio UI)** — this is Wan2GP-native and intentionally diverges from React
+- React component structure, JSX, hooks — none of this translates
+- TailwindCSS classes — use Gradio CSS instead
+- Browser-only features (audio cues, drag-drop, clipboard) — out of scope for plugin v1
 
 ## Pre-flight Checklist
 
