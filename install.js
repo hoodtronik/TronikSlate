@@ -4,7 +4,7 @@ module.exports = {
       method: "shell.run",
       params: {
         message: [
-          "git clone https://github.com/heheok/bytecut-director.git app",
+          "git clone --depth 1 https://github.com/heheok/bytecut-director.git app",
         ]
       }
     },
@@ -13,7 +13,7 @@ module.exports = {
       params: {
         path: "app",
         message: [
-          "npm install",
+          "npm ci",
         ]
       }
     },
