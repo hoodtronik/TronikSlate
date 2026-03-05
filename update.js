@@ -12,7 +12,7 @@ module.exports = {
         path: "app",
         message: [
           "git fetch --all --prune",
-          "git pull --ff-only",
+          "git checkout b722874",
           "npm ci"
         ]
       }
