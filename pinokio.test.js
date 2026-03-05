@@ -12,9 +12,12 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].text, 'Installing');
-    assert.strictEqual(result[0].href, 'install.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: "fa-solid fa-plug",
+      text: "Installing",
+      href: "install.js",
+    }]);
   });
 
   await t.test('should show Install when not installed and nothing running', async () => {
@@ -24,9 +27,12 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].text, 'Install');
-    assert.strictEqual(result[0].href, 'install.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: "fa-solid fa-plug",
+      text: "Install",
+      href: "install.js",
+    }]);
   });
 
   await t.test('should show Start, Install, Reset when installed and idle', async () => {
@@ -36,10 +42,21 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 3);
-    assert.strictEqual(result[0].text, 'Start');
-    assert.strictEqual(result[1].text, 'Install');
-    assert.ok(result[2].text.includes('Reset'));
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: "fa-solid fa-power-off",
+      text: "Start",
+      href: "start.js",
+    }, {
+      icon: "fa-solid fa-plug",
+      text: "Install",
+      href: "install.js",
+    }, {
+      icon: "fa-regular fa-circle-xmark",
+      text: "<div><strong>Reset</strong><div>Revert to pre-install state</div></div>",
+      href: "reset.js",
+      confirm: "Are you sure you wish to reset the app?"
+    }]);
   });
 
   await t.test('should show Open Web UI and Terminal when start.js is running with local url', async () => {
@@ -49,11 +66,16 @@ test('pinokio menu logic', async (t) => {
       local: (file) => file === 'start.js' ? { url: 'http://localhost:3000' } : null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 2);
-    assert.strictEqual(result[0].text, 'Open Web UI');
-    assert.strictEqual(result[0].href, 'http://localhost:3000');
-    assert.strictEqual(result[1].text, 'Terminal');
-    assert.strictEqual(result[1].href, 'start.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: "fa-solid fa-rocket",
+      text: "Open Web UI",
+      href: 'http://localhost:3000',
+    }, {
+      icon: 'fa-solid fa-terminal',
+      text: "Terminal",
+      href: "start.js",
+    }]);
   });
 
   await t.test('should show Terminal only when start.js is running without local url', async () => {
@@ -63,9 +85,12 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].text, 'Terminal');
-    assert.strictEqual(result[0].href, 'start.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: 'fa-solid fa-terminal',
+      text: "Terminal",
+      href: "start.js",
+    }]);
   });
 
   await t.test('should show Updating when update.js is running', async () => {
@@ -75,9 +100,12 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].text, 'Updating');
-    assert.strictEqual(result[0].href, 'update.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: 'fa-solid fa-terminal',
+      text: "Updating",
+      href: "update.js",
+    }]);
   });
 
   await t.test('should show Resetting when reset.js is running', async () => {
@@ -87,8 +115,11 @@ test('pinokio menu logic', async (t) => {
       local: () => null
     };
     const result = await pinokio.menu(kernel, info);
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0].text, 'Resetting');
-    assert.strictEqual(result[0].href, 'reset.js');
+    assert.deepStrictEqual(result, [{
+      default: true,
+      icon: 'fa-solid fa-terminal',
+      text: "Resetting",
+      href: "reset.js",
+    }]);
   });
 });
