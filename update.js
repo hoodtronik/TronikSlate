@@ -3,7 +3,7 @@ module.exports = {
     {
       method: "shell.run",
       params: {
-        message: "git pull --ff-only"
+        message: "git fetch --all --prune && git checkout 140071daddedf1f7d278547ba050bfc9b3658c58"
       }
     },
     {
@@ -12,7 +12,7 @@ module.exports = {
         path: "app",
         message: [
           "git fetch --all --prune",
-          "git pull --ff-only",
+          "git checkout b722874",
           "npm ci"
         ]
       }
